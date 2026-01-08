@@ -60,6 +60,7 @@ export interface AppConfig {
   notificationEmail: string;
   people: Person[];
   projectsData: ProjectData[];
+  projects: string[];
 }
 
 export type ViewMode = 'selection' | 'dashboard' | 'tasks' | 'projects' | 'people';
