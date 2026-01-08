@@ -1,11 +1,10 @@
-
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
   define: {
-    // Permite que o código use process.env.API_KEY como esperado pelo SDK do Gemini
+    // Injeta a API_KEY do ambiente do Vercel no código do cliente
     'process.env.API_KEY': JSON.stringify(process.env.API_KEY)
   },
   server: {
@@ -13,6 +12,13 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: false
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'recharts', 'lucide-react']
+        }
+      }
+    }
   }
 });
