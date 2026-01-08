@@ -1,11 +1,22 @@
 
 export type Priority = 'Baixa' | 'Média' | 'Alta' | 'Urgente';
 export type Status = 'Não Iniciada' | 'Em Andamento' | 'Bloqueada' | 'Concluída';
+export type ProjectStatus = 'Em Planejamento' | 'Ativo' | 'Suspenso' | 'Concluído' | 'Atrasado';
 
 export interface TaskUpdate {
   id: string;
   date: string;
   note: string;
+}
+
+export interface ActivityLog {
+  id: string;
+  taskId: string;
+  taskTitle: string;
+  user: string;
+  timestamp: string;
+  reason: string;
+  action: 'EXCLUSÃO';
 }
 
 export interface Task {
@@ -44,6 +55,7 @@ export interface ChecklistItem {
 export interface ProjectData {
   id: string;
   name: string;
+  status: ProjectStatus;
   trackingChecklist: ChecklistItem[];
   regulatoryChecklist: ChecklistItem[];
 }
@@ -56,11 +68,17 @@ export interface DashboardStats {
   avgProgress: number;
 }
 
+export interface AppUser {
+  username: string;
+  role: 'admin' | 'user' | 'visitor';
+  passwordHash: string;
+}
+
 export interface AppConfig {
   notificationEmail: string;
   people: Person[];
   projectsData: ProjectData[];
-  projects: string[];
+  users: AppUser[];
 }
 
-export type ViewMode = 'selection' | 'dashboard' | 'tasks' | 'projects' | 'people';
+export type ViewMode = 'selection' | 'dashboard' | 'tasks' | 'projects' | 'people' | 'logs' | 'access-control';

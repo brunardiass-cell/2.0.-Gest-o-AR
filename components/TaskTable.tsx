@@ -5,12 +5,13 @@ import { Edit2, Trash2, MoreVertical, Eye } from 'lucide-react';
 
 interface TaskTableProps {
   tasks: Task[];
+  canEdit: boolean;
   onEdit: (task: Task) => void;
   onViewDetails: (task: Task) => void;
   onDelete: (id: string) => void;
 }
 
-const TaskTable: React.FC<TaskTableProps> = ({ tasks, onEdit, onViewDetails, onDelete }) => {
+const TaskTable: React.FC<TaskTableProps> = ({ tasks, canEdit, onEdit, onViewDetails, onDelete }) => {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'Urgente': return 'bg-red-100 text-red-700 border-red-200';
@@ -84,20 +85,24 @@ const TaskTable: React.FC<TaskTableProps> = ({ tasks, onEdit, onViewDetails, onD
                     >
                       <Eye size={18} />
                     </button>
-                    <button 
-                      onClick={() => onEdit(task)}
-                      className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
-                      title="Editar"
-                    >
-                      <Edit2 size={18} />
-                    </button>
-                    <button 
-                      onClick={() => onDelete(task.id)}
-                      className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                      title="Excluir"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                    {canEdit && (
+                      <>
+                        <button 
+                          onClick={() => onEdit(task)}
+                          className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                          title="Editar"
+                        >
+                          <Edit2 size={18} />
+                        </button>
+                        <button 
+                          onClick={() => onDelete(task.id)}
+                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                          title="Excluir"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>

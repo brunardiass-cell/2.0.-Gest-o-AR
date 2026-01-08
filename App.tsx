@@ -1,22 +1,28 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Task, Person, ProjectData, ViewMode, AppConfig, DashboardStats } from './types';
+import { Task, Person, ProjectData, ViewMode, AppConfig, DashboardStats, ActivityLog, AppUser } from './types';
 import { INITIAL_TASKS } from './constants';
 import Sidebar from './components/Sidebar';
 import DashboardOverview from './components/DashboardOverview';
 import TaskBoard from './components/TaskBoard';
 import TaskModal from './components/TaskModal';
 import TaskDetailsModal from './components/TaskDetailsModal';
+import DeletionModal from './components/DeletionModal';
 import ReportView from './components/ReportView';
 import SelectionView from './components/SelectionView';
 import ProjectsManager from './components/ProjectsManager';
 import PeopleManager from './components/PeopleManager';
-import { Plus, FileText, ShieldCheck, ArrowRight, Bell } from 'lucide-react';
+import ActivityLogView from './components/ActivityLogView';
+import AccessControl from './components/AccessControl';
+import { Plus, FileText, ShieldCheck, ArrowRight, Bell, History } from 'lucide-react';
 
 const App: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
+  const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('selection');
   const [selectedMember, setSelectedMember] = useState<string | 'Todos'>('Todos');
+  const [currentUser, setCurrentUser] = useState<AppUser | null>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('Todos');
@@ -24,6 +30,7 @@ const App: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | undefined>(undefined);
   const [viewingTask, setViewingTask] = useState<Task | undefined>(undefined);
+  const [taskToDelete, setTaskToDelete] = useState<Task | undefined>(undefined);
   const [isReportOpen, setIsReportOpen] = useState(false);
   
   const [config, setConfig] = useState<AppConfig>({
@@ -37,11 +44,17 @@ const App: React.FC = () => {
       { id: '6', name: 'Ana Terzian', email: 'anaterzian@ctvacinas.br', notificationsEnabled: true }
     ],
     projectsData: [
-      { id: 'p1', name: 'Registro de Vacinas', trackingChecklist: [], regulatoryChecklist: [] },
-      { id: 'p2', name: 'Estudos de Estabilidade', trackingChecklist: [], regulatoryChecklist: [] },
-      { id: 'p3', name: 'Dossiê Técnico', trackingChecklist: [], regulatoryChecklist: [] }
+      { id: 'p1', name: 'Registro de Vacinas', status: 'Ativo', trackingChecklist: [], regulatoryChecklist: [] },
+      { id: 'p2', name: 'Estudos de Estabilidade', status: 'Em Planejamento', trackingChecklist: [], regulatoryChecklist: [] },
+      { id: 'p3', name: 'Dossiê Técnico', status: 'Ativo', trackingChecklist: [], regulatoryChecklist: [] }
+    ],
+    users: [
+      { username: 'Graziella', role: 'admin', passwordHash: 'admin' }
     ]
   });
+
+  const canEdit = currentUser?.role !== 'visitor';
+  const isAdmin = currentUser?.role === 'admin';
 
   const memberTasks = useMemo(() => {
     if (selectedMember === 'Todos') return tasks;
@@ -72,7 +85,22 @@ const App: React.FC = () => {
     return { totalLastMonth: total, completed, inProgress, blocked, avgProgress };
   }, [memberTasks]);
 
+  const handleLogin = (user: AppUser) => {
+    setCurrentUser(user);
+    setIsLoggedIn(true);
+    setSelectedMember(user.role === 'visitor' ? 'Todos' : user.username);
+    setViewMode('dashboard');
+  };
+
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setCurrentUser(null);
+    setSelectedMember('Todos');
+    setViewMode('selection');
+  };
+
   const handleSaveTask = (newTask: Task) => {
+    if (!canEdit) return;
     if (editingTask) {
       setTasks(prev => prev.map(t => t.id === editingTask.id ? newTask : t));
     } else {
@@ -82,17 +110,41 @@ const App: React.FC = () => {
     setEditingTask(undefined);
   };
 
+  const handleConfirmDeletion = (reason: string) => {
+    if (!taskToDelete || !canEdit) return;
+
+    const newLog: ActivityLog = {
+      id: Math.random().toString(36).substring(2, 9),
+      taskId: taskToDelete.id,
+      taskTitle: taskToDelete.activity,
+      user: currentUser?.username || 'Sistema',
+      timestamp: new Date().toISOString(),
+      reason: reason,
+      action: 'EXCLUSÃO'
+    };
+
+    setLogs(prev => [newLog, ...prev]);
+    setTasks(prev => prev.filter(t => t.id !== taskToDelete.id));
+    setTaskToDelete(undefined);
+  };
+
   const nextPendingTask = useMemo(() => {
     return [...memberTasks]
       .filter(t => t.status !== 'Concluída' && t.nextStep)
       .sort((a, b) => new Date(a.completionDate).getTime() - new Date(b.completionDate).getTime())[0];
   }, [memberTasks]);
 
-  if (viewMode === 'selection') {
-    return <SelectionView 
-      onSelect={(m) => { setSelectedMember(m); setViewMode('dashboard'); }} 
-      people={config.people}
-    />;
+  if (!isLoggedIn) {
+    return (
+      <SelectionView 
+        onSelect={(member) => {
+          handleLogin({ username: member, role: 'visitor', passwordHash: '' });
+        }}
+        onLogin={handleLogin}
+        people={config.people}
+        users={config.users}
+      />
+    );
   }
 
   return (
@@ -102,8 +154,10 @@ const App: React.FC = () => {
         onViewChange={setViewMode} 
         selectedMember={selectedMember} 
         onMemberChange={setSelectedMember}
-        onGoHome={() => setViewMode('selection')}
+        onGoHome={() => setViewMode('dashboard')}
+        onLogout={handleLogout}
         people={config.people}
+        currentUser={currentUser}
       />
 
       <main className="flex-1 ml-64 min-h-screen flex flex-col">
@@ -122,14 +176,16 @@ const App: React.FC = () => {
              <button onClick={() => setIsReportOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition text-xs font-black uppercase tracking-widest">
               <FileText size={16} /> Relatório IA
             </button>
-            <button onClick={() => { setEditingTask(undefined); setIsModalOpen(true); }} className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition shadow-lg font-black uppercase text-xs tracking-widest">
-              <Plus size={18} /> Nova Tarefa
-            </button>
+            {canEdit && (
+              <button onClick={() => { setEditingTask(undefined); setIsModalOpen(true); }} className="flex items-center gap-2 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition shadow-lg font-black uppercase text-xs tracking-widest">
+                <Plus size={18} /> Nova Tarefa
+              </button>
+            )}
           </div>
         </header>
 
         <div className="p-8 space-y-6 flex-1">
-          {nextPendingTask && (
+          {nextPendingTask && viewMode === 'dashboard' && (
             <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 flex items-center justify-between shadow-sm">
               <div className="flex items-center gap-4">
                 <div className="bg-indigo-600 p-2 rounded-xl text-white"><Bell size={20} /></div>
@@ -146,8 +202,9 @@ const App: React.FC = () => {
           {viewMode === 'tasks' && (
             <TaskBoard 
               tasks={filteredTasks} 
+              canEdit={canEdit}
               onEdit={(t) => { setEditingTask(t); setIsModalOpen(true); }}
-              onDelete={(id) => setTasks(prev => prev.filter(t => t.id !== id))}
+              onDelete={(id) => setTaskToDelete(tasks.find(t => t.id === id))}
               onViewDetails={setViewingTask}
             />
           )}
@@ -155,19 +212,31 @@ const App: React.FC = () => {
              <ProjectsManager 
               projects={config.projectsData} 
               tasks={tasks}
+              canEdit={canEdit}
               onUpdate={(newProjects) => setConfig({ ...config, projectsData: newProjects })} 
             />
           )}
           {viewMode === 'people' && (
             <PeopleManager 
               people={config.people}
+              canEdit={canEdit}
               onUpdate={(newPeople) => setConfig({ ...config, people: newPeople })}
+            />
+          )}
+          {viewMode === 'logs' && isAdmin && (
+            <ActivityLogView logs={logs} />
+          )}
+          {viewMode === 'access-control' && isAdmin && (
+            <AccessControl 
+              config={config} 
+              onUpdateConfig={(newConfig) => setConfig(newConfig)} 
+              currentUser={currentUser!}
             />
           )}
         </div>
       </main>
 
-      {isModalOpen && (
+      {isModalOpen && canEdit && (
         <TaskModal 
           isOpen={isModalOpen} 
           onClose={() => setIsModalOpen(false)} 
@@ -178,6 +247,13 @@ const App: React.FC = () => {
         />
       )}
       {viewingTask && <TaskDetailsModal task={viewingTask} onClose={() => setViewingTask(undefined)} />}
+      {taskToDelete && canEdit && (
+        <DeletionModal 
+          taskName={taskToDelete.activity} 
+          onClose={() => setTaskToDelete(undefined)} 
+          onConfirm={handleConfirmDeletion}
+        />
+      )}
       {isReportOpen && <ReportView isOpen={isReportOpen} onClose={() => setIsReportOpen(false)} tasks={filteredTasks} userName={selectedMember} />}
     </div>
   );

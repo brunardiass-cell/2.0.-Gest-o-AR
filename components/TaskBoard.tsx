@@ -5,12 +5,13 @@ import { Edit2, Trash2, Eye, Calendar, ArrowRight, User, Circle } from 'lucide-r
 
 interface TaskBoardProps {
   tasks: Task[];
+  canEdit: boolean;
   onEdit: (task: Task) => void;
   onDelete: (id: string) => void;
   onViewDetails: (task: Task) => void;
 }
 
-const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, onEdit, onDelete, onViewDetails }) => {
+const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, canEdit, onEdit, onDelete, onViewDetails }) => {
   const getPriorityInfo = (priority: string) => {
     switch (priority) {
       case 'Urgente': return { color: 'bg-red-500', text: 'Urgente' };
@@ -95,21 +96,28 @@ const TaskBoard: React.FC<TaskBoardProps> = ({ tasks, onEdit, onDelete, onViewDe
                   <button 
                     onClick={() => onViewDetails(task)}
                     className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                    title="Visualizar"
                   >
                     <Eye size={18} />
                   </button>
-                  <button 
-                    onClick={() => onEdit(task)}
-                    className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
-                  >
-                    <Edit2 size={18} />
-                  </button>
-                  <button 
-                    onClick={() => onDelete(task.id)}
-                    className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
-                  >
-                    <Trash2 size={18} />
-                  </button>
+                  {canEdit && (
+                    <>
+                      <button 
+                        onClick={() => onEdit(task)}
+                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition"
+                        title="Editar"
+                      >
+                        <Edit2 size={18} />
+                      </button>
+                      <button 
+                        onClick={() => onDelete(task.id)}
+                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition"
+                        title="Excluir"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

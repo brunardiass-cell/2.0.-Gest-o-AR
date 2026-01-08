@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Person, ViewMode } from '../types';
-import { LayoutDashboard, ListTodo, Users, User, FolderKanban, LogOut, Home, UserPlus } from 'lucide-react';
+import { Person, ViewMode, AppUser } from '../types';
+import { LayoutDashboard, ListTodo, Users, User, FolderKanban, LogOut, Home, UserPlus, History, ShieldCheck } from 'lucide-react';
 
 interface SidebarProps {
   currentView: ViewMode;
@@ -9,7 +9,9 @@ interface SidebarProps {
   selectedMember: string | 'Todos';
   onMemberChange: (member: string | 'Todos') => void;
   onGoHome: () => void;
+  onLogout: () => void;
   people: Person[];
+  currentUser: AppUser | null;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ 
@@ -18,8 +20,12 @@ const Sidebar: React.FC<SidebarProps> = ({
   selectedMember, 
   onMemberChange,
   onGoHome,
-  people
+  onLogout,
+  people,
+  currentUser
 }) => {
+  const isAdmin = currentUser?.role === 'admin';
+
   return (
     <aside className="w-64 bg-slate-900 text-slate-400 fixed h-full flex flex-col shadow-2xl z-50 border-r border-slate-800">
       <div className="p-8">
@@ -62,6 +68,25 @@ const Sidebar: React.FC<SidebarProps> = ({
             <UserPlus size={18} />
             Equipe
           </button>
+          <div className="my-4 border-t border-white/5"></div>
+          {isAdmin && (
+            <>
+              <button 
+                onClick={() => onViewChange('access-control')}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition font-bold text-xs uppercase tracking-widest ${currentView === 'access-control' ? 'bg-amber-600 text-white shadow-md shadow-amber-900/50' : 'hover:bg-amber-500/10 text-amber-500/80'}`}
+              >
+                <ShieldCheck size={18} />
+                Controle Acesso
+              </button>
+              <button 
+                onClick={() => onViewChange('logs')}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition font-bold text-xs uppercase tracking-widest ${currentView === 'logs' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-900/50' : 'hover:bg-red-500/10 text-slate-500'}`}
+              >
+                <History size={18} />
+                Auditoria
+              </button>
+            </>
+          )}
         </nav>
       </div>
 
@@ -92,9 +117,9 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       <div className="p-6 border-t border-slate-800">
         <button onClick={onGoHome} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition text-xs font-bold uppercase tracking-widest text-slate-400">
-          <Home size={18} /> Voltar Início
+          <Home size={18} /> Painel Início
         </button>
-        <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 transition text-xs font-bold uppercase tracking-widest text-red-500 mt-1">
+        <button onClick={onLogout} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 transition text-xs font-bold uppercase tracking-widest text-red-500 mt-1">
           <LogOut size={18} /> Sair
         </button>
       </div>
