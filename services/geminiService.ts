@@ -3,7 +3,7 @@ import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { Task } from "../types";
 
 export const generateExecutiveReport = async (tasks: Task[], contextName: string): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_API_KEY });
   
   const tasksSummary = tasks.map(t => ({
     projeto: t.project,
