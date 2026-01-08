@@ -15,7 +15,7 @@ export interface Task {
   activity: string;
   description: string;
   projectLead: string;
-  collaborators: string[]; // Pode conter nomes fora da lista fixa
+  collaborators: string[];
   priority: Priority;
   status: Status;
   plannedStartDate: string;
@@ -28,7 +28,25 @@ export interface Task {
   emailOnDeadline: boolean;
 }
 
-export type TeamMember = 'Graziella' | 'Bruna' | 'Ester' | 'Marjorie' | 'Ana Luiza' | 'Ana Terzian';
+export interface Person {
+  id: string;
+  name: string;
+  email: string;
+  notificationsEnabled: boolean;
+}
+
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  completed: boolean;
+}
+
+export interface ProjectData {
+  id: string;
+  name: string;
+  trackingChecklist: ChecklistItem[];
+  regulatoryChecklist: ChecklistItem[];
+}
 
 export interface DashboardStats {
   totalLastMonth: number;
@@ -40,8 +58,8 @@ export interface DashboardStats {
 
 export interface AppConfig {
   notificationEmail: string;
-  projects: string[];
-  memberProjects: Record<TeamMember, string[]>;
+  people: Person[];
+  projectsData: ProjectData[];
 }
 
-export type ViewMode = 'selection' | 'dashboard' | 'tasks' | 'projects';
+export type ViewMode = 'selection' | 'dashboard' | 'tasks' | 'projects' | 'people';

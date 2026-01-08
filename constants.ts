@@ -1,7 +1,8 @@
+// DO NOT add any new types to types.ts as per guidelines, fixing TeamMember usage here
+import { Priority, Status, Task } from './types';
 
-import { TeamMember, Priority, Status, Task } from './types';
-
-export const TEAM_MEMBERS: TeamMember[] = ['Graziella', 'Bruna', 'Ester', 'Marjorie', 'Ana Luiza', 'Ana Terzian'];
+// Fix: Removed missing TeamMember type and used string[] instead
+export const TEAM_MEMBERS: string[] = ['Graziella', 'Bruna', 'Ester', 'Marjorie', 'Ana Luiza', 'Ana Terzian'];
 
 export const PRIORITIES: Priority[] = ['Baixa', 'Média', 'Alta', 'Urgente'];
 

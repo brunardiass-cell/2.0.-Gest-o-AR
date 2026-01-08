@@ -1,15 +1,15 @@
 
 import React from 'react';
-import { TEAM_MEMBERS } from '../constants';
-import { TeamMember, ViewMode } from '../types';
-import { LayoutDashboard, ListTodo, Users, User, FolderKanban, LogOut, Home } from 'lucide-react';
+import { Person, ViewMode } from '../types';
+import { LayoutDashboard, ListTodo, Users, User, FolderKanban, LogOut, Home, UserPlus } from 'lucide-react';
 
 interface SidebarProps {
   currentView: ViewMode;
   onViewChange: (view: ViewMode) => void;
-  selectedMember: TeamMember | 'Todos';
-  onMemberChange: (member: TeamMember | 'Todos') => void;
+  selectedMember: string | 'Todos';
+  onMemberChange: (member: string | 'Todos') => void;
   onGoHome: () => void;
+  people: Person[];
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ 
@@ -17,7 +17,8 @@ const Sidebar: React.FC<SidebarProps> = ({
   onViewChange, 
   selectedMember, 
   onMemberChange,
-  onGoHome
+  onGoHome,
+  people
 }) => {
   return (
     <aside className="w-64 bg-slate-900 text-slate-400 fixed h-full flex flex-col shadow-2xl z-50 border-r border-slate-800">
@@ -27,8 +28,8 @@ const Sidebar: React.FC<SidebarProps> = ({
             G
           </div>
           <div>
-            <h2 className="text-white font-black text-lg leading-tight uppercase tracking-tighter">Graziella</h2>
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Liderança</p>
+            <h2 className="text-white font-black text-lg leading-tight uppercase tracking-tighter">Gestão 3.0</h2>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">AR CTVacinas</p>
           </div>
         </div>
 
@@ -54,12 +55,19 @@ const Sidebar: React.FC<SidebarProps> = ({
             <FolderKanban size={18} />
             Projetos
           </button>
+          <button 
+            onClick={() => onViewChange('people')}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition font-bold text-xs uppercase tracking-widest ${currentView === 'people' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-900/50' : 'hover:bg-white/5'}`}
+          >
+            <UserPlus size={18} />
+            Equipe
+          </button>
         </nav>
       </div>
 
       <div className="px-6 py-4 flex-1 overflow-y-auto custom-scrollbar">
         <h3 className="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-4 px-4">
-          Membros do Setor
+          Visualizar Por
         </h3>
         <div className="space-y-1">
           <button 
@@ -67,32 +75,27 @@ const Sidebar: React.FC<SidebarProps> = ({
             className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition text-xs font-bold uppercase tracking-wider ${selectedMember === 'Todos' ? 'text-indigo-400' : 'hover:text-white'}`}
           >
             <Users size={16} className={selectedMember === 'Todos' ? 'text-indigo-400' : 'text-slate-700'} />
-            Todas Equipes
+            Geral
           </button>
-          {TEAM_MEMBERS.map(member => (
+          {people.map(person => (
             <button 
-              key={member}
-              onClick={() => onMemberChange(member)}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition text-xs font-bold uppercase tracking-wider ${selectedMember === member ? 'text-indigo-400' : 'hover:text-white'}`}
+              key={person.id}
+              onClick={() => onMemberChange(person.name)}
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg transition text-xs font-bold uppercase tracking-wider ${selectedMember === person.name ? 'text-indigo-400' : 'hover:text-white'}`}
             >
-              <User size={16} className={selectedMember === member ? 'text-indigo-400' : 'text-slate-700'} />
-              {member}
+              <User size={16} className={selectedMember === person.name ? 'text-indigo-400' : 'text-slate-700'} />
+              {person.name}
             </button>
           ))}
         </div>
       </div>
 
       <div className="p-6 border-t border-slate-800">
-        <button 
-          onClick={onGoHome}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition text-xs font-bold uppercase tracking-widest text-slate-400"
-        >
-          <Home size={18} />
-          Início
+        <button onClick={onGoHome} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 transition text-xs font-bold uppercase tracking-widest text-slate-400">
+          <Home size={18} /> Voltar Início
         </button>
         <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-500/10 transition text-xs font-bold uppercase tracking-widest text-red-500 mt-1">
-          <LogOut size={18} />
-          Sair
+          <LogOut size={18} /> Sair
         </button>
       </div>
     </aside>
