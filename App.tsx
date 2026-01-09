@@ -64,8 +64,8 @@ useEffect(() => {
 
     setConfig(prev => ({
       ...prev,
-      projectsData: projects ?? [],
-      people: people?.map(p => ({
+      projectsData: projects ? projects : [],
+      people: people?.map((p: any) => ({
         id: p.id,
         name: p.name,
         email: p.email,
