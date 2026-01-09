@@ -44,10 +44,18 @@ const App: React.FC = () => {
   const isAdmin = currentUser?.role === 'admin';
 
 useEffect(() => {
-  const loadData = async () => {
-    const { data: projects } = await supabase.from("projects").select("*");
-    const { data: people } = await supabase.from("people").select("*");
-    const { data: users } = await supabase.from("app_users").select("*");
+const loadData = async () => {
+const { data: projects, error: projectsError } = await supabase.from("projects").select("*");
+const { data: people, error: peopleError } = await supabase.from("people").select("*");
+const { data: users, error: usersError } = await supabase.from("app_users").select("*");
+const { data: taskRows, error: tasksError } = await supabase
+  .from("tasks")
+  .select("id, data")
+  .order("created_at", { ascending: false });
+  console.log({ projectsError, peopleError, usersError, tasksError });
+
+setTasks((taskRows ?? []).map((r: any) => ({ id: r.id, ...(r.data || {}) })));
+
 
     setConfig(prev => ({
       ...prev,
