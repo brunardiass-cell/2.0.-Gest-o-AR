@@ -1,4 +1,4 @@
-
+import { supabase } from "./services/supabaseClient";
 import React, { useState, useMemo, useEffect } from 'react';
 import { Task, Person, ProjectData, ViewMode, AppConfig, DashboardStats, ActivityLog, AppUser } from './types';
 import { INITIAL_TASKS } from './constants';
