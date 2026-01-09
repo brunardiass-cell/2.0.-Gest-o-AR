@@ -59,15 +59,14 @@ setTasks((taskRows ?? []).map((r: any) => ({ id: r.id, ...(r.data || {}) })));
 
     setConfig(prev => ({
       ...prev,
-      projectsData: projects ? projects : [],
-      people: people?.map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        email: p.email,
-        notificationsEnabled: p.notifications_enabled
-      })) ?? [],
-      users: users ?? []
-    }));
+      projectsData: (projects ?? []).map((p: any) => ({
+  id: p.id,
+  name: p.name,
+  status: p.status,
+  trackingChecklist: p.tracking_checklist ?? [],
+  regulatoryChecklist: p.regulatory_checklist ?? []
+})),
+
   };
 
   loadData();
