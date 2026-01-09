@@ -56,6 +56,29 @@ const App: React.FC = () => {
   const canEdit = currentUser?.role !== 'visitor';
   const isAdmin = currentUser?.role === 'admin';
 
+useEffect(() => {
+  const loadData = async () => {
+    const { data: projects } = await supabase.from("projects").select("*");
+    const { data: people } = await supabase.from("people").select("*");
+    const { data: users } = await supabase.from("app_users").select("*");
+
+    setConfig(prev => ({
+      ...prev,
+      projectsData: projects ?? [],
+      people: people?.map(p => ({
+        id: p.id,
+        name: p.name,
+        email: p.email,
+        notificationsEnabled: p.notifications_enabled
+      })) ?? [],
+      users: users ?? []
+    }));
+  };
+
+  loadData();
+}, []);
+
+  
   const memberTasks = useMemo(() => {
     if (selectedMember === 'Todos') return tasks;
     return tasks.filter(t => 
