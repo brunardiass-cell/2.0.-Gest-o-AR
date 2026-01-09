@@ -79,6 +79,7 @@ export interface AppConfig {
   people: Person[];
   projectsData: ProjectData[];
   users: AppUser[];
+  projects: ProjectData[];
 }
 
 export type ViewMode = 'selection' | 'dashboard' | 'tasks' | 'projects' | 'people' | 'logs' | 'access-control';
