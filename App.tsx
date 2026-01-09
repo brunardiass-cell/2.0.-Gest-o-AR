@@ -34,23 +34,10 @@ const App: React.FC = () => {
   const [isReportOpen, setIsReportOpen] = useState(false);
   
   const [config, setConfig] = useState<AppConfig>({
-    notificationEmail: 'graziella.lider@empresa.com',
-    people: [
-      { id: '1', name: 'Graziella', email: 'graziella@ctvacinas.br', notificationsEnabled: true },
-      { id: '2', name: 'Bruna', email: 'bruna@ctvacinas.br', notificationsEnabled: true },
-      { id: '3', name: 'Ester', email: 'ester@ctvacinas.br', notificationsEnabled: true },
-      { id: '4', name: 'Marjorie', email: 'marjorie@ctvacinas.br', notificationsEnabled: true },
-      { id: '5', name: 'Ana Luiza', email: 'analuiza@ctvacinas.br', notificationsEnabled: true },
-      { id: '6', name: 'Ana Terzian', email: 'anaterzian@ctvacinas.br', notificationsEnabled: true }
-    ],
-    projectsData: [
-      { id: 'p1', name: 'Registro de Vacinas', status: 'Ativo', trackingChecklist: [], regulatoryChecklist: [] },
-      { id: 'p2', name: 'Estudos de Estabilidade', status: 'Em Planejamento', trackingChecklist: [], regulatoryChecklist: [] },
-      { id: 'p3', name: 'Dossiê Técnico', status: 'Ativo', trackingChecklist: [], regulatoryChecklist: [] }
-    ],
-    users: [
-      { username: 'Graziella', role: 'admin', passwordHash: 'admin' }
-    ]
+    notificationEmail: '',
+    people: [],
+    projectsData: [],
+    users: []
   });
 
   const canEdit = currentUser?.role !== 'visitor';
