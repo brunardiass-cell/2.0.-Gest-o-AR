@@ -117,34 +117,61 @@ setTasks((taskRows ?? []).map((r: any) => ({ id: r.id, ...(r.data || {}) })));
     setViewMode('selection');
   };
 
-  const handleSaveTask = (newTask: Task) => {
-    if (!canEdit) return;
-    if (editingTask) {
-      setTasks(prev => prev.map(t => t.id === editingTask.id ? newTask : t));
-    } else {
-      setTasks(prev => [newTask, ...prev]);
-    }
-    setIsModalOpen(false);
-    setEditingTask(undefined);
+ const handleSaveTask = async (newTask: Task) => {
+  if (!canEdit) return;
+
+  // salva no Supabase
+  const { error } = await supabase.from("tasks").upsert({
+    id: newTask.id,
+    data: newTask
+  });
+
+  if (error) {
+    console.error("Erro ao salvar no Supabase:", error);
+    return;
+  }
+
+  // mantém a UI atual atualizada
+  if (editingTask) {
+    setTasks(prev => prev.map(t => (t.id === editingTask.id ? newTask : t)));
+  } else {
+    setTasks(prev => [newTask, ...prev]);
+  }
+
+  setIsModalOpen(false);
+  setEditingTask(undefined);
+};
+
+
+ const handleConfirmDeletion = async (reason: string) => {
+  if (!taskToDelete || !canEdit) return;
+
+  // apaga no Supabase
+  const { error } = await supabase
+    .from("tasks")
+    .delete()
+    .eq("id", taskToDelete.id);
+
+  if (error) {
+    console.error("Erro ao apagar no Supabase:", error);
+    return;
+  }
+
+  const newLog: ActivityLog = {
+    id: Math.random().toString(36).substring(2, 9),
+    taskId: taskToDelete.id,
+    taskTitle: taskToDelete.activity,
+    user: currentUser?.username || 'Sistema',
+    timestamp: new Date().toISOString(),
+    reason: reason,
+    action: 'EXCLUSÃO'
   };
 
-  const handleConfirmDeletion = (reason: string) => {
-    if (!taskToDelete || !canEdit) return;
+  setLogs(prev => [newLog, ...prev]);
+  setTasks(prev => prev.filter(t => t.id !== taskToDelete.id));
+  setTaskToDelete(undefined);
+};
 
-    const newLog: ActivityLog = {
-      id: Math.random().toString(36).substring(2, 9),
-      taskId: taskToDelete.id,
-      taskTitle: taskToDelete.activity,
-      user: currentUser?.username || 'Sistema',
-      timestamp: new Date().toISOString(),
-      reason: reason,
-      action: 'EXCLUSÃO'
-    };
-
-    setLogs(prev => [newLog, ...prev]);
-    setTasks(prev => prev.filter(t => t.id !== taskToDelete.id));
-    setTaskToDelete(undefined);
-  };
 
   const nextPendingTask = useMemo(() => {
     return [...memberTasks]
