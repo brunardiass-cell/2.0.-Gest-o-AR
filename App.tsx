@@ -17,7 +17,7 @@ import AccessControl from './components/AccessControl';
 import { Plus, FileText, ShieldCheck, ArrowRight, Bell, History } from 'lucide-react';
 
 const App: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('selection');
   const [selectedMember, setSelectedMember] = useState<string | 'Todos'>('Todos');
