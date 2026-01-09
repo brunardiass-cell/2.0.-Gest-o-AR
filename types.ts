@@ -77,7 +77,7 @@ export interface AppUser {
 export interface AppConfig {
   notificationEmail: string;
   people: Person[];
-  projectsData: ProjectData[];
+  projects: ProjectData[];
   users: AppUser[];
   projects: ProjectData[];
 }
