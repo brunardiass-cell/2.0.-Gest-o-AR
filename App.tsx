@@ -1,4 +1,4 @@
-import { supabase } from "./services/supabaseClient";
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { Task, Person, ProjectData, ViewMode, AppConfig, DashboardStats, ActivityLog, AppUser } from './types';
 import { INITIAL_TASKS } from './constants';
@@ -17,7 +17,7 @@ import AccessControl from './components/AccessControl';
 import { Plus, FileText, ShieldCheck, ArrowRight, Bell, History } from 'lucide-react';
 
 const App: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
   const [logs, setLogs] = useState<ActivityLog[]>([]);
   const [viewMode, setViewMode] = useState<ViewMode>('selection');
   const [selectedMember, setSelectedMember] = useState<string | 'Todos'>('Todos');
@@ -34,45 +34,28 @@ const App: React.FC = () => {
   const [isReportOpen, setIsReportOpen] = useState(false);
   
   const [config, setConfig] = useState<AppConfig>({
-    notificationEmail: '',
-    people: [],
-    projectsData: [],
-    users: []
+    notificationEmail: 'graziella.lider@empresa.com',
+    people: [
+      { id: '1', name: 'Graziella', email: 'graziella@ctvacinas.br', notificationsEnabled: true },
+      { id: '2', name: 'Bruna', email: 'bruna@ctvacinas.br', notificationsEnabled: true },
+      { id: '3', name: 'Ester', email: 'ester@ctvacinas.br', notificationsEnabled: true },
+      { id: '4', name: 'Marjorie', email: 'marjorie@ctvacinas.br', notificationsEnabled: true },
+      { id: '5', name: 'Ana Luiza', email: 'analuiza@ctvacinas.br', notificationsEnabled: true },
+      { id: '6', name: 'Ana Terzian', email: 'anaterzian@ctvacinas.br', notificationsEnabled: true }
+    ],
+    projectsData: [
+      { id: 'p1', name: 'Registro de Vacinas', status: 'Ativo', trackingChecklist: [], regulatoryChecklist: [] },
+      { id: 'p2', name: 'Estudos de Estabilidade', status: 'Em Planejamento', trackingChecklist: [], regulatoryChecklist: [] },
+      { id: 'p3', name: 'Dossiê Técnico', status: 'Ativo', trackingChecklist: [], regulatoryChecklist: [] }
+    ],
+    users: [
+      { username: 'Graziella', role: 'admin', passwordHash: 'admin' }
+    ]
   });
 
   const canEdit = currentUser?.role !== 'visitor';
   const isAdmin = currentUser?.role === 'admin';
 
-useEffect(() => {
-const loadData = async () => {
-const { data: projects, error: projectsError } = await supabase.from("projects").select("*");
-const { data: people, error: peopleError } = await supabase.from("people").select("*");
-const { data: users, error: usersError } = await supabase.from("app_users").select("*");
-const { data: taskRows, error: tasksError } = await supabase
-  .from("tasks")
-  .select("id, data")
-  .order("created_at", { ascending: false });
-  console.log({ projectsError, peopleError, usersError, tasksError });
-
-setTasks((taskRows ?? []).map((r: any) => ({ id: r.id, ...(r.data || {}) })));
-
-
-    setConfig(prev => ({
-      ...prev,
-      projectsData: (projects ?? []).map((p: any) => ({
-  id: p.id,
-  name: p.name,
-  status: p.status,
-  trackingChecklist: p.tracking_checklist ?? [],
-  regulatoryChecklist: p.regulatory_checklist ?? []
-})),
-
-  };
-
-  loadData();
-}, []);
-
-  
   const memberTasks = useMemo(() => {
     if (selectedMember === 'Todos') return tasks;
     return tasks.filter(t => 
@@ -116,61 +99,34 @@ setTasks((taskRows ?? []).map((r: any) => ({ id: r.id, ...(r.data || {}) })));
     setViewMode('selection');
   };
 
- const handleSaveTask = async (newTask: Task) => {
-  if (!canEdit) return;
-
-  // salva no Supabase
-  const { error } = await supabase.from("tasks").upsert({
-    id: newTask.id,
-    data: newTask
-  });
-
-  if (error) {
-    console.error("Erro ao salvar no Supabase:", error);
-    return;
-  }
-
-  // mantém a UI atual atualizada
-  if (editingTask) {
-    setTasks(prev => prev.map(t => (t.id === editingTask.id ? newTask : t)));
-  } else {
-    setTasks(prev => [newTask, ...prev]);
-  }
-
-  setIsModalOpen(false);
-  setEditingTask(undefined);
-};
-
-
- const handleConfirmDeletion = async (reason: string) => {
-  if (!taskToDelete || !canEdit) return;
-
-  // apaga no Supabase
-  const { error } = await supabase
-    .from("tasks")
-    .delete()
-    .eq("id", taskToDelete.id);
-
-  if (error) {
-    console.error("Erro ao apagar no Supabase:", error);
-    return;
-  }
-
-  const newLog: ActivityLog = {
-    id: Math.random().toString(36).substring(2, 9),
-    taskId: taskToDelete.id,
-    taskTitle: taskToDelete.activity,
-    user: currentUser?.username || 'Sistema',
-    timestamp: new Date().toISOString(),
-    reason: reason,
-    action: 'EXCLUSÃO'
+  const handleSaveTask = (newTask: Task) => {
+    if (!canEdit) return;
+    if (editingTask) {
+      setTasks(prev => prev.map(t => t.id === editingTask.id ? newTask : t));
+    } else {
+      setTasks(prev => [newTask, ...prev]);
+    }
+    setIsModalOpen(false);
+    setEditingTask(undefined);
   };
 
-  setLogs(prev => [newLog, ...prev]);
-  setTasks(prev => prev.filter(t => t.id !== taskToDelete.id));
-  setTaskToDelete(undefined);
-};
+  const handleConfirmDeletion = (reason: string) => {
+    if (!taskToDelete || !canEdit) return;
 
+    const newLog: ActivityLog = {
+      id: Math.random().toString(36).substring(2, 9),
+      taskId: taskToDelete.id,
+      taskTitle: taskToDelete.activity,
+      user: currentUser?.username || 'Sistema',
+      timestamp: new Date().toISOString(),
+      reason: reason,
+      action: 'EXCLUSÃO'
+    };
+
+    setLogs(prev => [newLog, ...prev]);
+    setTasks(prev => prev.filter(t => t.id !== taskToDelete.id));
+    setTaskToDelete(undefined);
+  };
 
   const nextPendingTask = useMemo(() => {
     return [...memberTasks]

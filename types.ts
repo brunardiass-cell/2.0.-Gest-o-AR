@@ -77,9 +77,8 @@ export interface AppUser {
 export interface AppConfig {
   notificationEmail: string;
   people: Person[];
-  projects: ProjectData[];
+  projectsData: ProjectData[];
   users: AppUser[];
-  projects: ProjectData[];
 }
 
 export type ViewMode = 'selection' | 'dashboard' | 'tasks' | 'projects' | 'people' | 'logs' | 'access-control';
